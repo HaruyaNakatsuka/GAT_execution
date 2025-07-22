@@ -77,10 +77,14 @@ def solve_vrp(customers, pickup_to_delivery, num_vehicles, vehicle_capacity):
         index = manager.NodeToIndex(node_idx)
         time_dim.CumulVar(index).SetRange(*time_windows[node_idx])
 
+    print(pickup_to_delivery)
     # Pickup and Delivery constraints
     for pickup_id, delivery_id in pickup_to_delivery.items():
         pickup_idx = manager.NodeToIndex(pickup_id - customers[0]['id'])
         delivery_idx = manager.NodeToIndex(delivery_id - customers[0]['id'])
+        print("pickup_id:", pickup_id)
+        print("delivery_id:", delivery_id)
+        print("valid node range:", [manager.IndexToNode(i) for i in range(routing.Size())])
         routing.AddPickupAndDelivery(pickup_idx, delivery_idx)
         routing.solver().Add(routing.VehicleVar(pickup_idx) == routing.VehicleVar(delivery_idx))
         routing.solver().Add(time_dim.CumulVar(pickup_idx) <= time_dim.CumulVar(delivery_idx))
@@ -89,9 +93,7 @@ def solve_vrp(customers, pickup_to_delivery, num_vehicles, vehicle_capacity):
     search_params = pywrapcp.DefaultRoutingSearchParameters()
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
 
-    print("Here1")
     solution = routing.SolveWithParameters(search_params)
-    print("Here2")
 
     if not solution:
         print("解が見つかりませんでした。")

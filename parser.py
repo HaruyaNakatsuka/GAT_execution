@@ -27,6 +27,7 @@ def parse_lilim200(filepath, id_offset=0, time_offset=0):
         pickup_index = int(parts[7])
         delivery_index = int(parts[8])
 
+
         node = {
             'id': cust_id,
             'x': x,
@@ -45,6 +46,7 @@ def parse_lilim200(filepath, id_offset=0, time_offset=0):
             pickups[cust_id] = delivery_index + id_offset
         elif demand < 0 and pickup_index > 0:
             deliveries[cust_id] = pickup_index + id_offset
+
 
     return {
         'customers': customers,
