@@ -21,10 +21,9 @@ def create_distance_matrix(customers):
     return matrix
 
 
-def solve_vrp(customers, pickup_to_delivery, num_vehicles, vehicle_capacity):
+def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle_capacity):
     # ノード数とデポのインデックス（通常0）
     depot = 0
-    num_nodes = len(customers)
 
     # 時間窓の抽出
     time_windows = [(c['ready'], c['due']) for c in customers]
@@ -35,7 +34,7 @@ def solve_vrp(customers, pickup_to_delivery, num_vehicles, vehicle_capacity):
     distance_matrix = create_distance_matrix(customers)
 
     # Routing Index Manager
-    manager = pywrapcp.RoutingIndexManager(num_nodes, num_vehicles, depot)
+    manager = pywrapcp.RoutingIndexManager(num_allnodes, num_vehicles, depot)
 
     # Routing Model
     routing = pywrapcp.RoutingModel(manager)
@@ -73,27 +72,26 @@ def solve_vrp(customers, pickup_to_delivery, num_vehicles, vehicle_capacity):
         "Time"
     )
     time_dim = routing.GetDimensionOrDie("Time")
-    for node_idx in range(num_nodes):
+    for node_idx in range(len(customers)):
         index = manager.NodeToIndex(node_idx)
         time_dim.CumulVar(index).SetRange(*time_windows[node_idx])
 
-    print(pickup_to_delivery)
     # Pickup and Delivery constraints
     for pickup_id, delivery_id in pickup_to_delivery.items():
         pickup_idx = manager.NodeToIndex(pickup_id - customers[0]['id'])
         delivery_idx = manager.NodeToIndex(delivery_id - customers[0]['id'])
-        print("pickup_id:", pickup_id)
-        print("delivery_id:", delivery_id)
-        print("valid node range:", [manager.IndexToNode(i) for i in range(routing.Size())])
         routing.AddPickupAndDelivery(pickup_idx, delivery_idx)
         routing.solver().Add(routing.VehicleVar(pickup_idx) == routing.VehicleVar(delivery_idx))
         routing.solver().Add(time_dim.CumulVar(pickup_idx) <= time_dim.CumulVar(delivery_idx))
 
+    print("Here")
     # 解く
     search_params = pywrapcp.DefaultRoutingSearchParameters()
+    print("H1")
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-
+    print("H2")
     solution = routing.SolveWithParameters(search_params)
+    print("H3")
 
     if not solution:
         print("解が見つかりませんでした。")

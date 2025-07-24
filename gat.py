@@ -6,10 +6,12 @@ def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_
     requests = list(pickup_to_delivery.items())
     random.shuffle(requests)
 
+    last_id = customers[-1]['id']
+
     lsp_assignments = [[] for _ in range(num_lsps)]
     for i, req in enumerate(requests):
         lsp_assignments[i % num_lsps].append(req)
-  
+
     lsp_routes = []
     for reqs in lsp_assignments:
         involved_ids = set()
@@ -18,7 +20,7 @@ def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_
         sub_customers = [c for c in customers if c['id'] in involved_ids or c['id'] == 0]
         sub_pickups = {p: d for p, d in reqs}
         ### ↓エラー発生
-        route = solve_vrp(sub_customers, sub_pickups, num_vehicles=1, vehicle_capacity=vehicle_capacity)
+        route = solve_vrp(sub_customers, sub_pickups, last_id, num_vehicles=1, vehicle_capacity=vehicle_capacity)
         lsp_routes.append(route)
 
     return lsp_routes, lsp_assignments

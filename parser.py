@@ -47,7 +47,6 @@ def parse_lilim200(filepath, id_offset=0, time_offset=0):
         elif demand < 0 and pickup_index > 0:
             deliveries[cust_id] = pickup_index + id_offset
 
-
     return {
         'customers': customers,
         'pickup_to_delivery': pickups,
