@@ -22,7 +22,6 @@ def create_distance_matrix(customers):
 
 
 def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle_capacity):
-    num_vehicles=42
 
     depot = 0
     time_windows = [(c['ready'], c['due']) for c in customers]
@@ -69,7 +68,6 @@ def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle
 
     # ID → インデックス辞書
     id_to_index = {c['id']: i for i, c in enumerate(customers)}
-    print(id_to_index)
 
     # Pickup and Delivery 制約（修正）
     for pickup_id, delivery_id in pickup_to_delivery.items():
