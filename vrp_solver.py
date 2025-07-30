@@ -22,24 +22,19 @@ def create_distance_matrix(customers):
 
 
 def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle_capacity):
-    # ノード数とデポのインデックス（通常0）
-    depot = 0
+    num_vehicles=42
 
-    # 時間窓の抽出
+    depot = 0
     time_windows = [(c['ready'], c['due']) for c in customers]
     service_times = [c['service'] for c in customers]
     demands = [c['demand'] for c in customers]
-
-    # 距離行列
     distance_matrix = create_distance_matrix(customers)
 
-    # Routing Index Manager
+    # Routing
     manager = pywrapcp.RoutingIndexManager(num_allnodes, num_vehicles, depot)
-
-    # Routing Model
     routing = pywrapcp.RoutingModel(manager)
 
-    # 距離コスト
+    # 距離コールバック
     def distance_callback(from_idx, to_idx):
         from_node = manager.IndexToNode(from_idx)
         to_node = manager.IndexToNode(to_idx)
@@ -65,39 +60,45 @@ def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle
 
     time_callback_index = routing.RegisterTransitCallback(time_callback)
     routing.AddDimension(
-        time_callback_index,
-        30,  # allow waiting time
-        10000,  # max horizon
-        False,
-        "Time"
+        time_callback_index, 30, 10000, False, "Time"
     )
     time_dim = routing.GetDimensionOrDie("Time")
     for node_idx in range(len(customers)):
         index = manager.NodeToIndex(node_idx)
         time_dim.CumulVar(index).SetRange(*time_windows[node_idx])
 
-    # Pickup and Delivery constraints
+    # ID → インデックス辞書
+    id_to_index = {c['id']: i for i, c in enumerate(customers)}
+    print(id_to_index)
+
+    # Pickup and Delivery 制約（修正）
     for pickup_id, delivery_id in pickup_to_delivery.items():
-        pickup_idx = manager.NodeToIndex(pickup_id - customers[0]['id'])
-        delivery_idx = manager.NodeToIndex(delivery_id - customers[0]['id'])
+        if pickup_id not in id_to_index or delivery_id not in id_to_index:
+            print(f"Invalid ID pair: {pickup_id}, {delivery_id}")
+            continue
+
+        pickup_idx = manager.NodeToIndex(id_to_index[pickup_id])
+        delivery_idx = manager.NodeToIndex(id_to_index[delivery_id])
+
         routing.AddPickupAndDelivery(pickup_idx, delivery_idx)
         routing.solver().Add(routing.VehicleVar(pickup_idx) == routing.VehicleVar(delivery_idx))
         routing.solver().Add(time_dim.CumulVar(pickup_idx) <= time_dim.CumulVar(delivery_idx))
 
-    print("Here")
-    # 解く
+    # 探索パラメータ
     search_params = pywrapcp.DefaultRoutingSearchParameters()
-    print("H1")
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-    print("H2")
+    search_params.log_search = True
+
+    print("VRP解決開始")
+    # 実行
     solution = routing.SolveWithParameters(search_params)
-    print("H3")
+    print("経路生成完了")
 
     if not solution:
         print("解が見つかりませんでした。")
         return None
 
-    # 解の表示
+    # 解の出力
     result = []
     for vehicle_id in range(num_vehicles):
         idx = routing.Start(vehicle_id)
@@ -106,10 +107,11 @@ def solve_vrp(customers, pickup_to_delivery, num_allnodes, num_vehicles, vehicle
             node_index = manager.IndexToNode(idx)
             route.append(customers[node_index]['id'])
             idx = solution.Value(routing.NextVar(idx))
-        route.append(customers[manager.IndexToNode(idx)]['id'])  # End node
+        route.append(customers[manager.IndexToNode(idx)]['id'])
         result.append(route)
 
     return result
+
 
 def route_cost(route, customers):
     """ルートの総距離を計算する簡易関数"""
