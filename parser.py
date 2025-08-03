@@ -1,7 +1,6 @@
-def parse_lilim200(filepath, id_offset=0, time_offset=0):
+def parse_lilim200(filepath, x_offset=0, y_offset=0, id_offset=0, time_offset=0):
     customers = []
-    pickups = {}
-    deliveries = {}
+    P_to_D = {}
 
     with open(filepath, 'r') as f:
         lines = f.readlines()
@@ -18,14 +17,20 @@ def parse_lilim200(filepath, id_offset=0, time_offset=0):
             continue
 
         cust_id = int(parts[0]) + id_offset
-        x = float(parts[1])
-        y = float(parts[2])
+        x = float(parts[1]) + x_offset
+        y = float(parts[2]) + y_offset
         demand = int(parts[3])
         ready = int(parts[4]) + time_offset
         due = int(parts[5]) + time_offset
         service = int(parts[6])
-        pickup_index = int(parts[7])
-        delivery_index = int(parts[8])
+        if int(parts[7]) > 0:
+            pickup_index = int(parts[7]) + id_offset
+        else:
+            pickup_index = int(parts[7])
+        if int(parts[8]) > 0:
+            delivery_index = int(parts[8]) + id_offset
+        else:
+            delivery_index = int(parts[8])
 
 
         node = {
@@ -43,14 +48,13 @@ def parse_lilim200(filepath, id_offset=0, time_offset=0):
         customers.append(node)
 
         if demand > 0 and delivery_index > 0:
-            pickups[cust_id] = delivery_index + id_offset
-        elif demand < 0 and pickup_index > 0:
-            deliveries[cust_id] = pickup_index + id_offset
+            P_to_D[cust_id] = delivery_index
 
     return {
         'customers': customers,
-        'pickup_to_delivery': pickups,
-        'delivery_to_pickup': deliveries,
+        'PD_pairs': P_to_D,
         'num_vehicles': num_vehicles,
-        'vehicle_capacity': vehicle_capacity
+        'vehicle_capacity': vehicle_capacity,
+        'depot_id': customers[0]['id'],
+        'depot_coord': (customers[0]['x'], customers[0]['y'])
     }

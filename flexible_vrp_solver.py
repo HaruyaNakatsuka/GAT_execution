@@ -20,16 +20,25 @@ def create_distance_matrix(customers):
     return matrix
 
 
-def solve_vrp_flexible(customers, pickup_to_delivery, num_vehicles, vehicle_capacity,
+def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, start_depots, end_depots,
                        use_capacity:bool, use_time:bool, use_pickup_delivery:bool):
 
-    depot = 0
     time_windows = [(c['ready'], c['due']) for c in customers]
     service_times = [c['service'] for c in customers]
     demands = [c['demand'] for c in customers]
     distance_matrix = create_distance_matrix(customers)
+    
+     # 顧客ID → インデックス変換辞書
+    id_to_index = {c['id']: i for i, c in enumerate(customers)}
+    # 各車両の開始・終了インデックス（RoutingIndexManagerに渡す形式）
+    try:
+        starts = [id_to_index[depot_id] for depot_id in start_depots]
+        ends = [id_to_index[depot_id] for depot_id in end_depots]
+    except KeyError as e:
+        print(f"Invalid depot ID in start or end: {e}")
+        return None
 
-    manager = pywrapcp.RoutingIndexManager(len(customers), num_vehicles, depot)
+    manager = pywrapcp.RoutingIndexManager(len(customers), num_vehicles, starts, ends)
     routing = pywrapcp.RoutingModel(manager)
     
 
@@ -67,7 +76,7 @@ def solve_vrp_flexible(customers, pickup_to_delivery, num_vehicles, vehicle_capa
             idx = manager.NodeToIndex(node_idx)
             time_dim.CumulVar(idx).SetRange(*time_windows[node_idx])
 
-    # Pickup and Delivery 制約（修正）
+    # Pickup and Delivery 制約
     if use_pickup_delivery:
         routing.AddDimension(
             transit_cb,
@@ -79,12 +88,10 @@ def solve_vrp_flexible(customers, pickup_to_delivery, num_vehicles, vehicle_capa
         distance_dimension = routing.GetDimensionOrDie("Distance")
         distance_dimension.SetGlobalSpanCostCoefficient(100)
         
-        id_to_index = {c['id']: i for i, c in enumerate(customers)}# ID → インデックス辞書
-        for pickup_id, delivery_id in pickup_to_delivery.items():
+        for pickup_id, delivery_id in PD_pairs:
             if pickup_id not in id_to_index or delivery_id not in id_to_index:
                 print(f"Invalid ID pair: {pickup_id}, {delivery_id}")
                 continue
-
             pickup_idx = manager.NodeToIndex(id_to_index[pickup_id])
             delivery_idx = manager.NodeToIndex(id_to_index[delivery_id])
 
@@ -93,7 +100,6 @@ def solve_vrp_flexible(customers, pickup_to_delivery, num_vehicles, vehicle_capa
                                  == routing.VehicleVar(delivery_idx))
             routing.solver().Add(distance_dimension.CumulVar(pickup_idx)
                                  <= distance_dimension.CumulVar(delivery_idx))
-
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
@@ -110,6 +116,7 @@ def solve_vrp_flexible(customers, pickup_to_delivery, num_vehicles, vehicle_capa
         idx = routing.Start(vehicle_id)
         plan_output = f"vehicle {vehicle_id+1} : "
         route = []
+        
         while not routing.IsEnd(idx):
             route.append(customers[manager.IndexToNode(idx)]['id'])
             plan_output += f"{customers[manager.IndexToNode(idx)]['id']} -> "
