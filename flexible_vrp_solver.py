@@ -114,16 +114,11 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
     result = []
     for vehicle_id in range(num_vehicles):
         idx = routing.Start(vehicle_id)
-        plan_output = f"vehicle {vehicle_id+1} : "
         route = []
-        
         while not routing.IsEnd(idx):
             route.append(customers[manager.IndexToNode(idx)]['id'])
-            plan_output += f"{customers[manager.IndexToNode(idx)]['id']} -> "
             idx = solution.Value(routing.NextVar(idx))
         route.append(customers[manager.IndexToNode(idx)]['id'])
-        plan_output += f"{customers[manager.IndexToNode(idx)]['id']}"
-        print(plan_output)
         result.append(route)
 
     return result
@@ -133,7 +128,10 @@ def route_cost(route, customers):
     id_to_coord = {c['id']: (c['x'], c['y']) for c in customers}
     cost = 0
     for i in range(len(route) - 1):
-        x1, y1 = id_to_coord[route[i]]
-        x2, y2 = id_to_coord[route[i + 1]]
+        try:
+            x1, y1 = id_to_coord[route[i]]
+            x2, y2 = id_to_coord[route[i + 1]]
+        except KeyError as e:
+            raise KeyError(f"ID {e} not found in customers")
         cost += ((x2 - x1)**2 + (y2 - y1)**2)**0.5
     return cost
