@@ -70,7 +70,7 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
             to_node = manager.IndexToNode(to_idx)
             return distance_matrix[from_node][to_node] + service_times[from_node]
         time_cb = routing.RegisterTransitCallback(time_callback)
-        routing.AddDimension(time_cb, 30, 10000, False, "Time")
+        routing.AddDimension(time_cb, 99999, 99999, False, "Time")
         time_dim = routing.GetDimensionOrDie("Time")
         for node_idx in range(len(customers)):
             idx = manager.NodeToIndex(node_idx)
@@ -103,6 +103,10 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
     search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
+    #search_params.time_limit.seconds = 30     # 各呼び出し = 5 秒
+    #search_params.solution_limit = 10                 # 見つける解数を制限（任意）
+    #search_params.num_search_workers = cpu_workers
     #search_params.log_search = True
 
     solution = routing.SolveWithParameters(search_params)

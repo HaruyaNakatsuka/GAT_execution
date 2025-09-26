@@ -31,6 +31,7 @@ def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_
         end_depot = [depot_id] * num_vehicles
 
         # VRPを解く
+        print(">>>初期解生成中・・・")
         lsp_routes = solve_vrp_flexible(
             sub_customers,
             sub_PD_pairs,
@@ -65,6 +66,7 @@ def perform_gat_exchange(original_routes, customers, PD_pairs, vehicle_num_list,
     #全2車両ペアに対して2車両VRPを実行
     for i in range(num_vehicles):
         for j in range(i + 1, num_vehicles):
+            print(f">車両No.{i+1}と車両No.{j+1}のGAT検証・・・")
             # 2車両分の訪問地点（空リストも考慮）を結合して集合に
             combined_node_ids = set(original_routes[i] + original_routes[j])
             # 両車両のデポは必ず含める

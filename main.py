@@ -5,12 +5,12 @@ from visualizer import plot_routes
 
 # === パラメータ設定 ===
 file_paths = [
-    "data/mini_LC1_2_1.txt",
-    "data/mini_LC2_2_1.txt"
+    "data/LC1_2_2.txt",
+    "data/LC1_2_6.txt"
 ]
 offsets = [
     (0, 0),
-    (-193, -193)
+    (42, -42)
 ]
 num_lsps = len(file_paths)  # LSPの数 = データファイル数
 
@@ -43,7 +43,6 @@ for path, offset in zip(file_paths, offsets):
     # 車両容量の情報を保存（全ファイルで同じ前提）
     if vehicle_capacity is None:
         vehicle_capacity = data['vehicle_capacity']
-
 
 # === 初期解生成 ===
 routes = initialize_individual_vrps(
