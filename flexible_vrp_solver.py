@@ -22,6 +22,14 @@ def create_distance_matrix(customers):
 
 def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, start_depots, end_depots,
                        use_capacity:bool, use_time:bool, use_pickup_delivery:bool):
+    
+    print(customers)
+    print(PD_pairs)
+    print(num_vehicles)
+    print(vehicle_capacity)
+    print(start_depots)
+    print(end_depots)
+    
 
     time_windows = [(c['ready'], c['due']) for c in customers]
     service_times = [c['service'] for c in customers]
@@ -102,18 +110,20 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
                                  <= distance_dimension.CumulVar(delivery_idx))
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
-    search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_MOST_CONSTRAINED_ARC
     search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
     #search_params.time_limit.seconds = 30     # 各呼び出し = 5 秒
     #search_params.solution_limit = 10                 # 見つける解数を制限（任意）
     #search_params.num_search_workers = cpu_workers
-    #search_params.log_search = True
+    search_params.log_search = True
 
     solution = routing.SolveWithParameters(search_params)
     if not solution:
         print("No solution found.")
         return None
 
+    print("#経路生成完了#")
+    
     # 解の取得
     result = []
     for vehicle_id in range(num_vehicles):

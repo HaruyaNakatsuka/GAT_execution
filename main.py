@@ -2,6 +2,7 @@ from parser import parse_lilim200
 from flexible_vrp_solver import route_cost
 from gat import initialize_individual_vrps, perform_gat_exchange
 from visualizer import plot_routes
+import sys
 
 # === パラメータ設定 ===
 file_paths = [

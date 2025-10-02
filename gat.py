@@ -1,5 +1,6 @@
 from flexible_vrp_solver import solve_vrp_flexible, route_cost
 from ortools.sat.python import cp_model
+import gc
 
 
 def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity, seed=42):
@@ -66,6 +67,9 @@ def perform_gat_exchange(original_routes, customers, PD_pairs, vehicle_num_list,
     #全2車両ペアに対して2車両VRPを実行
     for i in range(num_vehicles):
         for j in range(i + 1, num_vehicles):
+            
+            gc.collect()
+            
             print(f">車両No.{i+1}と車両No.{j+1}のGAT検証・・・")
             # 2車両分の訪問地点（空リストも考慮）を結合して集合に
             combined_node_ids = set(original_routes[i] + original_routes[j])
