@@ -32,7 +32,6 @@ def parse_lilim200(filepath, x_offset=0, y_offset=0, id_offset=0, time_offset=0)
         else:
             delivery_index = int(parts[8])
 
-
         node = {
             'id': cust_id,
             'x': x,
