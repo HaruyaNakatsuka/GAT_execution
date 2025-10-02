@@ -111,8 +111,8 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
     if isInitPhase:
-        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.LOCAL_CHEAPEST_INSERTION
-        print("Hi inti")
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.FIRST_UNBOUND_MIN_VALUE
+        print("Hi inmm")
     else:
         search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
         print("hi GAT")
