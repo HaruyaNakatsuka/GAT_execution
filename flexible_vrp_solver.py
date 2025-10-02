@@ -21,15 +21,15 @@ def create_distance_matrix(customers):
 
 
 def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, start_depots, end_depots,
-                       use_capacity:bool, use_time:bool, use_pickup_delivery:bool):
-    
+                       use_capacity:bool, use_time:bool, use_pickup_delivery:bool, isInitPhase:bool):
+    """
     print(customers)
     print(PD_pairs)
     print(num_vehicles)
     print(vehicle_capacity)
     print(start_depots)
     print(end_depots)
-    
+    """
 
     time_windows = [(c['ready'], c['due']) for c in customers]
     service_times = [c['service'] for c in customers]
@@ -110,7 +110,14 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
                                  <= distance_dimension.CumulVar(delivery_idx))
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
-    search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_MOST_CONSTRAINED_ARC
+    if isInitPhase:
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.LOCAL_CHEAPEST_INSERTION
+        print("Hi inti")
+    else:
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
+        print("hi GAT")
+
+    
     search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
     #search_params.time_limit.seconds = 30     # 各呼び出し = 5 秒
     #search_params.solution_limit = 10                 # 見つける解数を制限（任意）

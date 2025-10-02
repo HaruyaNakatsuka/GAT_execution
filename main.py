@@ -2,11 +2,14 @@ from parser import parse_lilim200
 from flexible_vrp_solver import route_cost
 from gat import initialize_individual_vrps, perform_gat_exchange
 from visualizer import plot_routes
+import time
 import sys
+
+start_time = time.time()
 
 # === パラメータ設定 ===
 file_paths = [
-    "data/LC1_2_2.txt",
+    "data/mini.txt",
     "data/LC1_2_6.txt"
 ]
 offsets = [
@@ -45,6 +48,7 @@ for path, offset in zip(file_paths, offsets):
     if vehicle_capacity is None:
         vehicle_capacity = data['vehicle_capacity']
 
+
 # === 初期解生成 ===
 routes = initialize_individual_vrps(
     all_customers, all_PD_pairs, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity=vehicle_capacity
@@ -65,6 +69,8 @@ print("=== 初期経路 ===")
 print_routes_with_lsp_separator(routes, vehicle_num_list)
 #plot_routes(data['customers'], routes, "初期ルート")
 
+sys.exit()
+
 # === GAT改善フェーズ ===
 for i in range(5):
     print(f"\n=== gat改善：{i+1}回目 ===")
@@ -83,3 +89,7 @@ for i in range(5):
     # 更新
     previous_cost = current_cost
     print_routes_with_lsp_separator(routes, vehicle_num_list)
+
+end_time = time.time()
+elapsed = end_time - start_time
+print(f"\n=== プログラム全体の実行時間: {elapsed:.2f} 秒 ===")

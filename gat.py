@@ -42,7 +42,8 @@ def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_
             end_depots=end_depot,
             use_capacity=True,
             use_time=True,
-            use_pickup_delivery=True
+            use_pickup_delivery=True,
+            isInitPhase=True
         )
 
         all_vehicle_routes.extend(lsp_routes)
@@ -89,7 +90,7 @@ def perform_gat_exchange(original_routes, customers, PD_pairs, vehicle_num_list,
             
             #2車両VRP解決
             new_routes = solve_vrp_flexible(sub_customers, PD_pairs_of_2vehicle, 2, vehicle_capacity, start_depots, end_depots,
-                                            use_capacity=True, use_time=True, use_pickup_delivery=True)
+                                            use_capacity=True, use_time=True, use_pickup_delivery=True, isInitPhase=False)
             old_cost = route_cost(original_routes[i], customers) + route_cost(original_routes[j], customers)
             new_cost = sum(route_cost(r, customers) for r in new_routes)
             #経路が更新されていればアクション集合に追加
