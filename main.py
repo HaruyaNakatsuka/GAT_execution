@@ -16,7 +16,7 @@ file_paths = [
 # 元論文の手法に則り片方のデータセットをオフセット
 offsets = [
     (0, 0),
-    (42, -42)
+    (-32, -32)
 ]
 
 # LSP（Logistics Service Provider:物流会社）の数 = データファイル数
@@ -92,7 +92,7 @@ for i in range(5):
     from_previous = (previous_cost - current_cost) / previous_cost * 100
     print(f"[初期ルートからのコスト改善率] {from_initial:.2f}%")
     print(f"[前回経路からのコスト改善率] {from_previous:.2f}%")
-    if int(from_previous) == 0:
+    if round(from_previous, 1) == 0.0:
         break
     else:
         previous_cost = current_cost

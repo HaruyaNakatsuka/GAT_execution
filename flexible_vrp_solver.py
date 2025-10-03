@@ -88,14 +88,14 @@ def solve_vrp_flexible(customers, initial_routes, PD_pairs, num_vehicles, vehicl
                                  <= distance_dimension.CumulVar(delivery_idx))
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
-    #search_params.log_search = True
+    search_params.log_search = True
 
     if isInitPhase:
-        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
         search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
         solution = routing.SolveWithParameters(search_params)
     else:
-        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
         search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
 
         # idをローカルインデックスに変換
