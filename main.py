@@ -9,7 +9,7 @@ start_time = time.time()
 
 # === パラメータ設定 ===
 file_paths = [
-    "data/mini.txt",
+    "data/LC1_2_2.txt",
     "data/LC1_2_6.txt"
 ]
 offsets = [
@@ -69,15 +69,17 @@ print("=== 初期経路 ===")
 print_routes_with_lsp_separator(routes, vehicle_num_list)
 #plot_routes(data['customers'], routes, "初期ルート")
 
-sys.exit()
+
 
 # === GAT改善フェーズ ===
 for i in range(5):
     print(f"\n=== gat改善：{i+1}回目 ===")
     
     routes = perform_gat_exchange(
-        routes, all_customers, all_PD_pairs, vehicle_num_list, depot_id_list, vehicle_capacity=vehicle_capacity
+        routes, all_customers, all_PD_pairs, vehicle_capacity=vehicle_capacity
     )
+
+    print_routes_with_lsp_separator(routes, vehicle_num_list)
     
     # コスト改善率計算
     current_cost = sum(route_cost(route, all_customers) for route in routes)
@@ -85,10 +87,10 @@ for i in range(5):
     from_previous = (previous_cost - current_cost) / previous_cost * 100
     print(f"[初期ルートからのコスト改善率] {from_initial:.2f}%")
     print(f"[前回経路からのコスト改善率] {from_previous:.2f}%")
-    
+    if int(from_previous) == 0:
+        break
     # 更新
     previous_cost = current_cost
-    print_routes_with_lsp_separator(routes, vehicle_num_list)
 
 end_time = time.time()
 elapsed = end_time - start_time

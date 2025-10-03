@@ -2,68 +2,44 @@ from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 import math
 
-def euclidean_distance(x1, y1, x2, y2):
-    return math.hypot(x1 - x2, y1 - y2)
-
-
 def create_distance_matrix(customers):
     size = len(customers)
     matrix = [[0] * size for _ in range(size)]
     for i in range(size):
         for j in range(size):
-            matrix[i][j] = int(
-                euclidean_distance(
-                    customers[i]['x'], customers[i]['y'],
-                    customers[j]['x'], customers[j]['y']
-                )
-            )
+            matrix[i][j] = int(math.hypot(customers[i]['x'] - customers[j]['x'], customers[i]['y'] - customers[j]['y']))
     return matrix
 
 
-def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, start_depots, end_depots,
+def solve_vrp_flexible(customers, initial_routes, PD_pairs, num_vehicles, vehicle_capacity, start_depots, end_depots,
                        use_capacity:bool, use_time:bool, use_pickup_delivery:bool, isInitPhase:bool):
-    """
-    print(customers)
-    print(PD_pairs)
-    print(num_vehicles)
-    print(vehicle_capacity)
-    print(start_depots)
-    print(end_depots)
-    """
-
-    time_windows = [(c['ready'], c['due']) for c in customers]
-    service_times = [c['service'] for c in customers]
-    demands = [c['demand'] for c in customers]
+    # 距離行列を作成
     distance_matrix = create_distance_matrix(customers)
     
      # 顧客ID → インデックス変換辞書
     id_to_index = {c['id']: i for i, c in enumerate(customers)}
-    # 各車両の開始・終了インデックス（RoutingIndexManagerに渡す形式）
-    try:
-        starts = [id_to_index[depot_id] for depot_id in start_depots]
-        ends = [id_to_index[depot_id] for depot_id in end_depots]
-    except KeyError as e:
-        print(f"Invalid depot ID in start or end: {e}")
-        return None
+    # 各車両のデポidをインデックスに変換（RoutingIndexManagerに渡す形式）
+    starts = [id_to_index[depot_id] for depot_id in start_depots]
+    ends = [id_to_index[depot_id] for depot_id in end_depots]
 
+    # routing index managerを作成
     manager = pywrapcp.RoutingIndexManager(len(customers), num_vehicles, starts, ends)
+    # Routing Modelを作成
     routing = pywrapcp.RoutingModel(manager)
-    
 
+    # transit callbackを作成・登録
     def distance_callback(from_idx, to_idx):
-        try:
-            from_node = manager.IndexToNode(from_idx)
-            to_node = manager.IndexToNode(to_idx)
-            return distance_matrix[from_node][to_node]
-        except:
-            return 999999
-    transit_cb = routing.RegisterTransitCallback(distance_callback)
-    routing.SetArcCostEvaluatorOfAllVehicles(transit_cb)
-    
-    
+        from_node = manager.IndexToNode(from_idx)
+        to_node = manager.IndexToNode(to_idx)
+        return distance_matrix[from_node][to_node]
+    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
 
+    #各アークのコストを定義（コスト＝距離）
+    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+    
     # 容量制約
     if use_capacity:
+        demands = [c['demand'] for c in customers]
         def demand_callback(from_idx):
             return demands[manager.IndexToNode(from_idx)]
         demand_cb = routing.RegisterUnaryTransitCallback(demand_callback)
@@ -73,6 +49,8 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
 
     # 時間制約
     if use_time:
+        time_windows = [(c['ready'], c['due']) for c in customers]
+        service_times = [c['service'] for c in customers]
         def time_callback(from_idx, to_idx):
             from_node = manager.IndexToNode(from_idx)
             to_node = manager.IndexToNode(to_idx)
@@ -87,7 +65,7 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
     # Pickup and Delivery 制約
     if use_pickup_delivery:
         routing.AddDimension(
-            transit_cb,
+            transit_callback_index,
             0,  # no slack
             10000,  # vehicle maximum travel distance
             True,  # start cumul to zero
@@ -110,26 +88,30 @@ def solve_vrp_flexible(customers, PD_pairs, num_vehicles, vehicle_capacity, star
                                  <= distance_dimension.CumulVar(delivery_idx))
 
     search_params = pywrapcp.DefaultRoutingSearchParameters()
+    #search_params.log_search = True
+
     if isInitPhase:
-        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.FIRST_UNBOUND_MIN_VALUE
-        print("Hi inmm")
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+        search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
+        solution = routing.SolveWithParameters(search_params)
     else:
-        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
-        print("hi GAT")
+        search_params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+        search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
 
+        # idをローカルインデックスに変換
+        initial_routes_local = []
+        for route in initial_routes:
+            initial_routes_local.append([id_to_index[node_id] for node_id in route])
+
+        routing.CloseModelWithParameters(search_params)
+        initial_solution = routing.ReadAssignmentFromRoutes(initial_routes_local, True)
+        solution = routing.SolveFromAssignmentWithParameters(initial_solution, search_params)
     
-    search_params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC
-    #search_params.time_limit.seconds = 30     # 各呼び出し = 5 秒
-    #search_params.solution_limit = 10                 # 見つける解数を制限（任意）
-    #search_params.num_search_workers = cpu_workers
-    search_params.log_search = True
-
-    solution = routing.SolveWithParameters(search_params)
     if not solution:
         print("No solution found.")
         return None
+    
 
-    print("#経路生成完了#")
     
     # 解の取得
     result = []
@@ -149,10 +131,7 @@ def route_cost(route, customers):
     id_to_coord = {c['id']: (c['x'], c['y']) for c in customers}
     cost = 0
     for i in range(len(route) - 1):
-        try:
-            x1, y1 = id_to_coord[route[i]]
-            x2, y2 = id_to_coord[route[i + 1]]
-        except KeyError as e:
-            raise KeyError(f"ID {e} not found in customers")
+        x1, y1 = id_to_coord[route[i]]
+        x2, y2 = id_to_coord[route[i + 1]]
         cost += ((x2 - x1)**2 + (y2 - y1)**2)**0.5
     return cost
