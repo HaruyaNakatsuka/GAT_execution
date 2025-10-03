@@ -7,18 +7,21 @@ import sys
 
 start_time = time.time()
 
-# === パラメータ設定 ===
+# 入力データセット
 file_paths = [
     "data/LC1_2_2.txt",
     "data/LC1_2_6.txt"
 ]
+
+# 元論文の手法に則り片方のデータセットをオフセット
 offsets = [
     (0, 0),
     (42, -42)
 ]
-num_lsps = len(file_paths)  # LSPの数 = データファイル数
 
-# === 全LSP分のデータ読み込みとオフセット適用 ===
+# LSP（Logistics Service Provider:物流会社）の数 = データファイル数
+num_lsps = len(file_paths)
+
 num_vehicles = 0
 all_customers = []
 all_PD_pairs = {}
@@ -49,7 +52,9 @@ for path, offset in zip(file_paths, offsets):
         vehicle_capacity = data['vehicle_capacity']
 
 
-# === 初期解生成 ===
+#      =============================
+#      === LSP個別経路生成フェーズ ===
+#      =============================
 routes = initialize_individual_vrps(
     all_customers, all_PD_pairs, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity=vehicle_capacity
 )
@@ -67,11 +72,11 @@ def print_routes_with_lsp_separator(routes, vehicle_num_list):
 
 print("=== 初期経路 ===")  
 print_routes_with_lsp_separator(routes, vehicle_num_list)
-#plot_routes(data['customers'], routes, "初期ルート")
 
 
-
-# === GAT改善フェーズ ===
+#       ==========================
+#       ===== GAT改善フェーズ =====
+#       ==========================
 for i in range(5):
     print(f"\n=== gat改善：{i+1}回目 ===")
     
@@ -89,9 +94,10 @@ for i in range(5):
     print(f"[前回経路からのコスト改善率] {from_previous:.2f}%")
     if int(from_previous) == 0:
         break
-    # 更新
-    previous_cost = current_cost
+    else:
+        previous_cost = current_cost
 
+# 経路改善終了, 実行時間表示
 end_time = time.time()
 elapsed = end_time - start_time
 print(f"\n=== プログラム全体の実行時間: {elapsed:.2f} 秒 ===")
