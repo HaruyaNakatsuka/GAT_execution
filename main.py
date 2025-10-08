@@ -4,6 +4,24 @@ from gat import initialize_individual_vrps, perform_gat_exchange
 from visualizer import plot_routes
 import time
 import os
+import json
+import webbrowser
+
+
+def export_vrp_state(customers, routes, PD_pairs, step_index, case_index):
+    """VRP状態をReactアプリ用にJSON形式で保存"""
+    output_dir = f"web_data/case_{case_index}"
+    os.makedirs(output_dir, exist_ok=True)
+    data = {
+        "customers": customers,
+        "routes": routes,
+        "PD_pairs": PD_pairs,
+        "step_index": step_index
+    }
+    json_path = os.path.join(output_dir, f"step_{step_index}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print(f"✅ VRP状態を出力しました: {json_path}")
 
 # ==============================
 # === テストケースの定義部 ===
@@ -87,6 +105,7 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
         all_customers, all_PD_pairs, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity=vehicle_capacity
     )
     plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=0, instance_name=instance_name)
+    #export_vrp_state(all_customers, routes, all_PD_pairs, 0, case_index)
     
     initial_cost = sum(route_cost(route, all_customers) for route in routes)
     print(f"初期経路コスト＝{initial_cost}")
@@ -117,6 +136,7 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
             routes, all_customers, all_PD_pairs, vehicle_capacity=vehicle_capacity
         )
         plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=i, instance_name=instance_name)
+        export_vrp_state(all_customers, routes, all_PD_pairs, i, case_index)
 
         #print_routes_with_lsp_separator(routes, vehicle_num_list)
         
@@ -138,3 +158,6 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
     end_time = time.time()
     elapsed = end_time - start_time
     print(f"=== テストケース {case_index} の実行時間: {elapsed:.2f} 秒 ===")
+    
+    webbrowser.open("http://localhost:3000")
+
