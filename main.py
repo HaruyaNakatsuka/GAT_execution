@@ -3,7 +3,7 @@ from flexible_vrp_solver import route_cost
 from gat import initialize_individual_vrps, perform_gat_exchange
 from visualizer import plot_routes
 import time
-import sys
+import os
 
 # ==============================
 # === テストケースの定義部 ===
@@ -30,7 +30,9 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
     print(f"テストケース {case_index}: {file_paths[0]} + {file_paths[1]}")
     print(f"オフセット: {offsets[0]} , {offsets[1]}")
     print("="*50)
-
+    
+    instance_name = f"{os.path.basename(file_paths[0]).split('.')[0]}_{os.path.basename(file_paths[1]).split('.')[0]}"
+    
     start_time = time.time()
     """
     # 入力データセット
@@ -84,9 +86,12 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
     routes = initialize_individual_vrps(
         all_customers, all_PD_pairs, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity=vehicle_capacity
     )
+    plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=0, instance_name=instance_name)
+    
     initial_cost = sum(route_cost(route, all_customers) for route in routes)
     print(f"初期経路コスト＝{initial_cost}")
     previous_cost = initial_cost
+    
 
     def print_routes_with_lsp_separator(routes, vehicle_num_list):
         vehicle_index = 0
@@ -111,6 +116,7 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
         routes = perform_gat_exchange(
             routes, all_customers, all_PD_pairs, vehicle_capacity=vehicle_capacity
         )
+        plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=i, instance_name=instance_name)
 
         #print_routes_with_lsp_separator(routes, vehicle_num_list)
         
