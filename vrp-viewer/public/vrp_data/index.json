@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "name": "case_1",
+      "steps": [
+        "step_0.json",
+        "step_1.json",
+        "step_2.json"
+      ]
+    },
+    {
+      "name": "case_2",
+      "steps": [
+        "step_0.json",
+        "step_1.json",
+        "step_2.json",
+        "step_3.json"
+      ]
+    },
+    {
+      "name": "case_3",
+      "steps": [
+        "step_0.json",
+        "step_1.json",
+        "step_2.json",
+        "step_3.json",
+        "step_4.json"
+      ]
+    },
+    {
+      "name": "case_4",
+      "steps": [
+        "step_0.json",
+        "step_1.json",
+        "step_2.json",
+        "step_3.json",
+        "step_4.json",
+        "step_5.json",
+        "step_6.json"
+      ]
+    }
+  ]
+}
