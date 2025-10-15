@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import FastVRPViewer from "./components/FastVRPViewer";
 
-export default function App() {
-  const [vrpData, setVrpData] = useState(null);
-
-  useEffect(() => {
-    fetch(process.env.PUBLIC_URL + "/vrp_data/case_1/step_0.json")
-      .then(res => res.json())
-      .then(json => setVrpData(json))
-      .catch(err => console.error("データ読み込みエラー:", err));
-  }, []);
+/**
+ * props:
+ * - customers
+ * - routes
+ * - PD_pairs
+ * - depot_id_list
+ * - vehicle_num_list
+ */
+export default function InteractiveVRPViewer({ customers, routes, PD_pairs, depot_id_list, vehicle_num_list }) {
+  // 受け取った props をそのまま FastVRPViewer に渡す
+  if (!customers || !routes) {
+    return <div>データがありません</div>;
+  }
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>VRP Route Viewer (react-konva)</h2>
-      {vrpData ? (
-        <FastVRPViewer
-          customers={vrpData.customers}
-          routes={vrpData.routes}
-          PD_pairs={vrpData.PD_pairs}
-        />
-      ) : (
-        <p>データを読み込んでいます...</p>
-      )}
+      <FastVRPViewer
+        customers={customers}
+        routes={routes}
+        PD_pairs={PD_pairs || {}}
+        depot_id_list={depot_id_list || []}
+        vehicle_num_list={vehicle_num_list || []}
+      />
     </div>
   );
 }
+
