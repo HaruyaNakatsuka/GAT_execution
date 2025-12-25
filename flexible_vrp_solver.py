@@ -7,7 +7,7 @@ def create_distance_matrix(customers):
     matrix = [[0] * size for _ in range(size)]
     for i in range(size):
         for j in range(size):
-            matrix[i][j] = int(math.hypot(customers[i]['x'] - customers[j]['x'], customers[i]['y'] - customers[j]['y']))
+            matrix[i][j] = int(math.floor(math.hypot(customers[i]['x'] - customers[j]['x'], customers[i]['y'] - customers[j]['y'])))
     return matrix
 
 
@@ -133,5 +133,5 @@ def route_cost(route, customers):
     for i in range(len(route) - 1):
         x1, y1 = id_to_coord[route[i]]
         x2, y2 = id_to_coord[route[i + 1]]
-        cost += ((x2 - x1)**2 + (y2 - y1)**2)**0.5
+        cost += int(math.floor(((x2 - x1)**2 + (y2 - y1)**2)**0.5))
     return cost

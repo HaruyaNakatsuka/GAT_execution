@@ -120,8 +120,8 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
     initial_total_cost = sum(initial_company_costs)
     print("\n==== 初期経路：会社別コスト ====")
     for idx, c in enumerate(initial_company_costs, 1):
-        print(f"LSP {idx}: {c:.2f}")
-    print(f"TOTAL: {initial_total_cost:.2f}")
+        print(f"LSP {idx}: {c}")
+    print(f"TOTAL: {initial_total_cost}")
     # [データ保存] -> jsonファイル、pngファイル
     export_vrp_state(all_customers, routes, all_PD_pairs, 0, case_index=case_index,depot_id_list=depot_id_list,
                     vehicle_num_list=vehicle_num_list,instance_name=instance_name, output_root="web_data")
@@ -160,20 +160,20 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
         # 各社の行
         colw = 15
         for idx, (init_c, prev_c, cur_c) in enumerate(zip(initial_company_costs, prev_company_costs, curr_company_costs), 1):
-            round_improve = ((prev_c - cur_c) / prev_c * 100.0) if prev_c > 0 else 0.0
-            init_improve = ((init_c - cur_c) / init_c * 100.0) if init_c > 0 else 0.0
+            round_improve = ((cur_c - prev_c) / prev_c * 100.0) if prev_c > 0 else 0.0
+            init_improve = ((cur_c - init_c) / init_c * 100.0) if init_c > 0 else 0.0
             print(
                 f"LSP {idx:<2} " +
-                "{:>{w}.2f} {:>{w}.2f} {:>{w}.2f} {:>{w}.2f}".format(
+                "{:>{w}} {:>{w}} {:>{w}.2f} {:>{w}.2f}".format(
                     init_c, cur_c, round_improve, init_improve, w=colw
                 )
             )
         # TOTAL行
-        round_improve_total = ((prev_total_cost - curr_total_cost) / prev_total_cost * 100.0) if prev_total_cost > 0 else 0.0
-        init_improve_total = ((initial_total_cost - curr_total_cost) / initial_total_cost * 100.0) if initial_total_cost > 0 else 0.0
+        round_improve_total = ((curr_total_cost - prev_total_cost) / prev_total_cost * 100.0) if prev_total_cost > 0 else 0.0
+        init_improve_total = ((curr_total_cost - initial_total_cost) / initial_total_cost * 100.0) if initial_total_cost > 0 else 0.0
         print(
             f"{'TOTAL':<6} " +
-            "{:>{w}.2f} {:>{w}.2f} {:>{w}.2f} {:>{w}.2f}".format(
+            "{:>{w}} {:>{w}} {:>{w}.2f} {:>{w}.2f}".format(
                 initial_total_cost, curr_total_cost, round_improve_total, init_improve_total, w=colw
             )
         )

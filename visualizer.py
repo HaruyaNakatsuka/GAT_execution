@@ -29,14 +29,14 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
         for k in range(len(single_route) - 1):
             x1, y1 = id2xy[single_route[k]]
             x2, y2 = id2xy[single_route[k + 1]]
-            cost += math.hypot(x2 - x1, y2 - y1)
+            cost += int(math.floor(math.hypot(x2 - x1, y2 - y1)))
         return cost
 
     def company_costs(all_routes, id2xy, veh_num_list):
         costs = []
         idx = 0
         for n in veh_num_list:
-            s = 0.0
+            s = 0
             for _ in range(n):
                 s += route_cost(all_routes[idx], id2xy)
                 idx += 1
@@ -56,12 +56,9 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
         except Exception:
             return None
 
-    def fmt(v):
-        return f"{v:.2f}"
-
     def pct(old, new):
         if old and old > 0:
-            return f"{(old - new) / old * 100:.2f}%"
+            return f"{(new - old) / old * 100:.2f}%"
         return "—"
 
     # ====== フォルダ準備（初回のみ全消去） ======
@@ -130,17 +127,17 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
     if iteration == 0:
         lines.append("【初期解】")
         for i, c in enumerate(curr_company, 1):
-            lines.append(f"  LSP {i}: {fmt(c)}")
-        lines.append(f"  TOTAL: {fmt(curr_total)}")
+            lines.append(f"  LSP {i}: {c}")
+        lines.append(f"  TOTAL: {curr_total}")
     else:
         lines.append(f"【GAT{iteration}回目】")
         for i, c in enumerate(curr_company, 1):
             base_prev = prev_metrics["company"][i-1] if prev_metrics else None
             base_init = init_metrics["company"][i-1] if init_metrics else None
-            lines.append(f"    LSP {i}: {fmt(c)}   改善(ラウンド比): {pct(base_prev, c)}   改善(初期比): {pct(base_init, c)}")
+            lines.append(f"    LSP {i}: {c}   改善(ラウンド比): {pct(base_prev, c)}   改善(初期比): {pct(base_init, c)}")
         base_total_prev = prev_metrics["total"] if prev_metrics else None
         base_total_init = init_metrics["total"] if init_metrics else None
-        lines.append(f"    TOTAL: {fmt(curr_total)}   改善(ラウンド比): {pct(base_total_prev, curr_total)}   改善(初期比): {pct(base_total_init, curr_total)}")
+        lines.append(f"    TOTAL: {curr_total}   改善(ラウンド比): {pct(base_total_prev, curr_total)}   改善(初期比): {pct(base_total_init, curr_total)}")
 
     # ====== ★ここを変更：下部フッターに表示 ======
     if lines:
