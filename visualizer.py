@@ -12,7 +12,7 @@ plt.rcParams['font.family'] = 'MS Gothic'  # Windowsの場合
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.monospace'] = ['MS Gothic']
 
-def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, instance_name="", output_dir="figures"):
+def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, instance_name="", output_dir="figures",elapsed_time: float | None = None,):
     """
     各車両の経路を描画し保存する関数（等距離線付き）
     - customers: 全顧客データ
@@ -138,6 +138,10 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
         base_total_prev = prev_metrics["total"] if prev_metrics else None
         base_total_init = init_metrics["total"] if init_metrics else None
         lines.append(f"    TOTAL: {curr_total}   改善(ラウンド比): {pct(base_total_prev, curr_total)}   改善(初期比): {pct(base_total_init, curr_total)}")
+        
+    # 実行時間をフッターに追加
+    if elapsed_time is not None:
+        lines.append(f"\n暫定時間: {elapsed_time:.2f} 秒")
 
     # ====== ★ここを変更：下部フッターに表示 ======
     if lines:

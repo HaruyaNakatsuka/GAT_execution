@@ -179,9 +179,10 @@ for case_index, (file_paths, offsets) in enumerate(test_cases, 1):
         )
         
         # [データ保存] -> jsonファイル、pngファイル
+        zantei_zikan = time.time()-start_time
         export_vrp_state(all_customers, routes, all_PD_pairs, i, case_index=case_index,depot_id_list=depot_id_list,
                         vehicle_num_list=vehicle_num_list,instance_name=instance_name, output_root="web_data")
-        plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=i, instance_name=instance_name)
+        plot_routes(all_customers, routes, depot_id_list, vehicle_num_list, iteration=i, instance_name=instance_name, elapsed_time=zantei_zikan)
         
         #print_routes_with_lsp_separator(routes, vehicle_num_list)
 
