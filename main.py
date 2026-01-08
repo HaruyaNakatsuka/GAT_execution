@@ -50,6 +50,11 @@ def print_routes_with_lsp_separator(routes, vehicle_num_list):
 # ==============================
 
 test_cases = [
+    (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)])
+]
+
+"""
+test_cases = [
     (["data/LC1_2_2.txt", "data/LC1_2_6.txt"], [(0, 0), (42, -42)]),
     (["data/LC1_2_2.txt", "data/LC1_2_7.txt"], [(0, 0), (-32, -32)]),
     (["data/LC1_2_4.txt", "data/LC1_2_7.txt"], [(0, 0), (-30, 0)]),
@@ -61,7 +66,7 @@ test_cases = [
     (["data/LR1_2_10.txt", "data/LR1_2_3.txt"], [(0, 0), (0, -30)]),
     (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)])
 ]
-
+"""
 
 
 # ==============================
