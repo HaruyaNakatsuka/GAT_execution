@@ -50,7 +50,12 @@ def route_cost_idx(route_idx: List[int], dist_mat: List[List[int]]) -> int:
     return s
 
 
-
+# ============================================================
+# 1台の PDPTW を「厳密に」解く（ラベリング/DP）
+# - 目的: 距離最小
+# - 制約: 容量 / タイムウィンドウ / PD順序（pickup -> delivery）
+# - 入力は Index 基準
+# ============================================================
 def solve_1vehicle_pdptw_exact_idx(
     sub_customers: List[Dict],
     pd_pairs: List[Tuple[int, int]],      # indexペア (pickup_idx, delivery_idx)
@@ -360,32 +365,66 @@ def solve_1vehicle_pdptw_exact_idx(
     if best_state is None or best_label is None:
         return None
 
-    # ========= 経路復元 =========
+    # ========= 経路復元（FIX版：整合する前ラベルを探索して辿る）=========
+    EPS = 1e-6
+
+    # best_label の dist/time も必要
+    dist_cur, time_cur, prev = best_label
+
     route_rev = [end_depot_idx]
     m3, last, load = best_state
-    _, _, prev = best_label
     route_rev.append(last)
 
+    # prev は (pm, plast, pload, visited) を想定
     while prev is not None:
-        pm, plast, pload, _visited = prev
-        route_rev.append(plast)
+        pm, plast, pload, visited = prev
 
-        next_prev = None
-        for _d2, _t2, prev2 in table[(pm, plast, pload)]:
-            next_prev = prev2
+        # visited は基本 last と一致するはず（念のため）
+        # assert visited == last
+
+        # predecessor label を table から探す
+        pred_label = None
+        for dist_p, time_p, prev_p in table[(pm, plast, pload)]:
+            # 距離整合
+            if abs((dist_p + dist_mat[plast][visited]) - dist_cur) > EPS:
+                continue
+
+            # 時刻整合（待機込み）
+            arrive = time_p + move_time[plast][visited]
+            time_expected = max(arrive, ready[visited])
+            if abs(time_expected - time_cur) > EPS:
+                continue
+
+            # これが「本当に使われた predecessor」
+            pred_label = (dist_p, time_p, prev_p)
             break
-        prev = next_prev
+
+        if pred_label is None:
+            # ここに来るのは、復元不能（prevの持ち方が不足）か、
+            # 浮動小数/丸めの不一致がある場合
+            if debug:
+                print(f"[DBG][{debug_name}] reconstruction failed at node={visited}")
+            return None  # もしくは raise RuntimeError にして原因を顕在化させる
+
+        # ひとつ戻る
+        dist_p, time_p, prev_p = pred_label
+        dist_cur, time_cur, prev = dist_p, time_p, prev_p
+
+        # predecessor の last は plast
+        route_rev.append(plast)
+        m3, last, load = pm, plast, pload
 
     route = list(reversed(route_rev))
 
-    # 念のため start/end を整形
-    if route[0] != start_depot_idx:
-        route = [start_depot_idx] + [x for x in route if x not in (start_depot_idx, end_depot_idx)] + [end_depot_idx]
-    if route[-1] != end_depot_idx:
-        route = route[:-1] + [end_depot_idx]
+    # start/end は「整形で誤魔化す」のではなく、基本ここで成立しているのが望ましい
+    # 必要なら assert にして早期発見
+    if route[0] != start_depot_idx or route[-1] != end_depot_idx:
+        if debug:
+            print(f"[DBG][{debug_name}] bad start/end in reconstructed route: {route[:5]} ... {route[-5:]}")
+        # ここで無理に整形すると順序が壊れる可能性があるので、返さない方が安全
+        return None
 
     return route
-
 
 
 def solve_exact_2vehicle_vrp(
@@ -813,4 +852,3 @@ def solve_exact_2vehicle_vrp(
     best_r0_id = [idx2id[i] for i in best_r0_idx]
     best_r1_id = [idx2id[i] for i in best_r1_idx]
     return [best_r0_id, best_r1_id]
-
