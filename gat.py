@@ -1,8 +1,7 @@
 from flexible_vrp_solver import solve_vrp_flexible, route_cost
-from ortools.sat.python import cp_model
 from exact_2vehicle_vrp_solver import solve_exact_2vehicle_vrp
 from checker import check_single_route_feasibility
-import sys
+from ortools.sat.python import cp_model
 
 
 def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_num_list, depot_id_list, vehicle_capacity, seed=42):
@@ -53,6 +52,7 @@ def initialize_individual_vrps(customers, pickup_to_delivery, num_lsps, vehicle_
         all_vehicle_routes.extend(lsp_routes)
 
     return all_vehicle_routes
+
 
 def perform_gat_exchange(
     original_routes,
@@ -352,5 +352,3 @@ def perform_gat_exchange(
         print("")
 
     return new_all_vehicles_routes
-
-
