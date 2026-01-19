@@ -93,7 +93,7 @@ def perform_gat_exchange(
             if debug:
                 print(f"[DEBUG]車両{i},{j}の2車両VRP")
                 print(f"       route{i}={original_routes[i]}")
-                print(f"       route{i}={original_routes[j]}")
+                print(f"       route{j}={original_routes[j]}")
 
             # 両車両のデポは必ず含める
             if original_routes[i]:
