@@ -158,6 +158,7 @@ test_cases = [
 ]
 
 """
+# --- 規模の小さいVRPに対し厳密解ソルバーを使用して実験する場合の入力 ---
 test_cases = [
     (["data/LC1_2_2.txt", "data/LC1_2_6.txt"], [(0, 0), (42, -42)], sys.maxsize),
     (["data/LC1_2_2.txt", "data/LC1_2_7.txt"], [(0, 0), (-32, -32)], sys.maxsize),
@@ -169,6 +170,20 @@ test_cases = [
     (["data/LR1_2_8.txt", "data/LR1_2_9.txt"], [(0, 0), (0, -30)], 7),
     (["data/LR1_2_10.txt", "data/LR1_2_3.txt"], [(0, 0), (0, -30)], 7),
     (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 5)
+]
+
+# --- ORToolsをのみを使用して実験する場合の入力 ---
+test_cases = [
+    (["data/LC1_2_2.txt", "data/LC1_2_6.txt"], [(0, 0), (42, -42)], 0),
+    (["data/LC1_2_2.txt", "data/LC1_2_7.txt"], [(0, 0), (-32, -32)], 0),
+    (["data/LC1_2_4.txt", "data/LC1_2_7.txt"], [(0, 0), (-30, 0)], 0),
+    (["data/LC1_2_4.txt", "data/LC1_2_8.txt"], [(0, 0), (-30, 0)], 0),
+    (["data/LC1_2_10.txt", "data/LC1_2_4.txt"], [(0, 0), (30, 0)], 0),
+    (["data/LR1_2_3.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 0),
+    (["data/LR1_2_5.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 0),
+    (["data/LR1_2_8.txt", "data/LR1_2_9.txt"], [(0, 0), (0, -30)], 0),
+    (["data/LR1_2_10.txt", "data/LR1_2_3.txt"], [(0, 0), (0, -30)], 0),
+    (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 0)
 ]
 """
 
