@@ -199,7 +199,7 @@ def solve_vrp_flexible(
         solution = routing.SolveWithParameters(search_params)
 
     if not solution:
-        print("<ORTools : No solution found>")
+        #print("<ORTools : No solution found>")
         return None
 
     # 解の復元（routing index -> customers index -> 顧客ID）
