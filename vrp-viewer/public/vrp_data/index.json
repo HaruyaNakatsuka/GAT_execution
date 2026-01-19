@@ -25,7 +25,9 @@
         "step_1.json",
         "step_2.json",
         "step_3.json",
-        "step_4.json"
+        "step_4.json",
+        "step_5.json",
+        "step_6.json"
       ]
     },
     {
@@ -37,7 +39,10 @@
         "step_3.json",
         "step_4.json",
         "step_5.json",
-        "step_6.json"
+        "step_6.json",
+        "step_7.json",
+        "step_8.json",
+        "step_9.json"
       ]
     },
     {
@@ -59,7 +64,10 @@
         "step_2.json",
         "step_3.json",
         "step_4.json",
-        "step_5.json"
+        "step_5.json",
+        "step_6.json",
+        "step_7.json",
+        "step_8.json"
       ]
     },
     {
@@ -70,7 +78,8 @@
         "step_2.json",
         "step_3.json",
         "step_4.json",
-        "step_5.json"
+        "step_5.json",
+        "step_6.json"
       ]
     },
     {
@@ -78,12 +87,15 @@
       "steps": [
         "step_0.json",
         "step_1.json",
+        "step_10.json",
         "step_2.json",
         "step_3.json",
         "step_4.json",
         "step_5.json",
         "step_6.json",
-        "step_7.json"
+        "step_7.json",
+        "step_8.json",
+        "step_9.json"
       ]
     },
     {
@@ -93,7 +105,10 @@
         "step_1.json",
         "step_2.json",
         "step_3.json",
-        "step_4.json"
+        "step_4.json",
+        "step_5.json",
+        "step_6.json",
+        "step_7.json"
       ]
     },
     {
@@ -107,8 +122,7 @@
         "step_5.json",
         "step_6.json",
         "step_7.json",
-        "step_8.json",
-        "step_9.json"
+        "step_8.json"
       ]
     }
   ]
