@@ -98,24 +98,47 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
             plt.plot(xs, ys, color=color, alpha=0.8)
             plt.scatter(xs, ys, c=color, s=15)
 
-    # 等距離線
+    # ====== ボロノイ領域分割線 ======
     if len(depot_id_list) > 1:
         depot_coords = np.array([id_to_coord[d] for d in depot_id_list])
-        x_vals = np.linspace(min(c["x"] for c in customers) - 10, max(c["x"] for c in customers) + 10, 300)
-        y_vals = np.linspace(min(c["y"] for c in customers) - 10, max(c["y"] for c in customers) + 10, 300)
-        X, Y = np.meshgrid(x_vals, y_vals)
-        distances = np.zeros((len(depot_coords), *X.shape))
-        for i, (dx, dy) in enumerate(depot_coords):
-            distances[i] = np.sqrt((X - dx)**2 + (Y - dy)**2)
-        for i in range(len(depot_coords)):
-            for j in range(i + 1, len(depot_coords)):
-                plt.contour(X, Y, distances[i] - distances[j], levels=[0], colors="gray", linestyles="--", linewidths=1)
 
-    plt.xlabel("X Coordinate")
-    plt.ylabel("Y Coordinate")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
+        x_min = min(c["x"] for c in customers) - 10
+        x_max = max(c["x"] for c in customers) + 10
+        y_min = min(c["y"] for c in customers) - 10
+        y_max = max(c["y"] for c in customers) + 10
+
+        x_vals = np.linspace(x_min, x_max, 300)
+        y_vals = np.linspace(y_min, y_max, 300)
+        X, Y = np.meshgrid(x_vals, y_vals)
+
+        # distances[k, :, :] = depot k から各格子点までの距離
+        distances = np.zeros((len(depot_coords), *X.shape), dtype=float)
+        for k, (dx, dy) in enumerate(depot_coords):
+            distances[k] = np.sqrt((X - dx) ** 2 + (Y - dy) ** 2)
+
+        if len(depot_id_list) == 2:
+            # 2社のときはただの等距離線
+            plt.contour(
+                X, Y, distances[0] - distances[1],
+                levels=[0], colors="gray", linestyles="--", linewidths=1
+            )
+        else:
+            # 3社以上：ボロノイ境界（最近傍デポが変わる場所）を描く
+            region = np.argmin(distances, axis=0)  # shape: (H, W), 値は 0..(m-1)
+
+            # 隣接セルでラベルが変わる場所を境界とみなす
+            boundary = np.zeros_like(region, dtype=bool)
+
+            # 縦方向の変化
+            boundary[:-1, :] |= (region[:-1, :] != region[1:, :])
+            # 横方向の変化
+            boundary[:, :-1] |= (region[:, :-1] != region[:, 1:])
+
+            # contour は数値配列が扱いやすいので 0/1 に変換して描画
+            plt.contour(
+                X, Y, boundary.astype(int),
+                levels=[0.5], colors="gray", linestyles="--", linewidths=1
+            )
 
     # ====== メトリクス計算 ======
     curr_company, curr_total = company_costs(routes, id_to_coord, vehicle_num_list)
@@ -143,7 +166,7 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
     if elapsed_time is not None:
         lines.append(f"\n暫定時間: {elapsed_time:.2f} 秒")
 
-    # ====== ★ここを変更：下部フッターに表示 ======
+    # ====== 下部フッターに表示 ======
     if lines:
         text = "\n".join(lines)
         fig = plt.gcf()
@@ -157,6 +180,125 @@ def plot_routes(customers, routes, depot_id_list, vehicle_num_list, iteration, i
             bbox=dict(boxstyle="round", facecolor="white", alpha=0.9, edgecolor="#999"),
             family="monospace"
         )
+
+    # 保存
+    save_path = os.path.join(instance_folder, f"routes_iter_{iteration:02d}.png")
+    plt.savefig(save_path)
+    plt.close()
+    logger.info(f"✅図を保存しました: {save_path}")
+    
+
+# === タイトル・フッター非表示用 ===
+def _plot_routes(
+    customers,
+    routes,
+    depot_id_list,
+    vehicle_num_list,
+    iteration,
+    instance_name="",
+    output_dir="figures",
+):
+    """
+    各車両の経路を描画し保存する関数（等距離線付き）
+    変更仕様：
+      - タイトル非表示
+      - フッター（改善率など）非表示
+      - 軸ラベルは "x", "y" のみ
+    """
+
+    # ====== フォルダ準備（初回のみ全消去） ======
+    instance_folder = os.path.join(output_dir, instance_name)
+    if iteration == 0 and os.path.isdir(instance_folder):
+        shutil.rmtree(instance_folder)
+    os.makedirs(instance_folder, exist_ok=True)
+
+    # ID -> 座標辞書
+    id_to_coord = {c["id"]: (c["x"], c["y"]) for c in customers}
+
+    # 色
+    colors = ["tab:blue", "tab:green", "tab:red", "tab:orange", "tab:purple", "tab:brown"]
+
+    # ====== 図のセットアップ ======
+    plt.figure(figsize=(8, 8))
+    # タイトルは表示しない（要件）
+    # plt.title(...)
+
+    # ====== 経路描画 ======
+    vehicle_index = 0
+    for lsp_index, num_vehicles in enumerate(vehicle_num_list):
+        color = colors[lsp_index % len(colors)]
+        depot_id = depot_id_list[lsp_index]
+        depot_x, depot_y = id_to_coord[depot_id]
+        plt.scatter(
+            depot_x, depot_y,
+            marker="s", c=color, s=120, edgecolor="black",
+            label=f"LSP {lsp_index+1}"
+        )
+
+        for _ in range(num_vehicles):
+            route = routes[vehicle_index]
+            vehicle_index += 1
+            if len(route) <= 2:
+                continue
+            xs = [id_to_coord[i][0] for i in route]
+            ys = [id_to_coord[i][1] for i in route]
+            plt.plot(xs, ys, color=color, alpha=0.8)
+            plt.scatter(xs, ys, c=color, s=15)
+
+    # ====== ボロノイ領域分割線 ======
+    if len(depot_id_list) > 1:
+        depot_coords = np.array([id_to_coord[d] for d in depot_id_list])
+
+        x_min = min(c["x"] for c in customers) - 10
+        x_max = max(c["x"] for c in customers) + 10
+        y_min = min(c["y"] for c in customers) - 10
+        y_max = max(c["y"] for c in customers) + 10
+
+        x_vals = np.linspace(x_min, x_max, 300)
+        y_vals = np.linspace(y_min, y_max, 300)
+        X, Y = np.meshgrid(x_vals, y_vals)
+
+        # distances[k, :, :] = depot k から各格子点までの距離
+        distances = np.zeros((len(depot_coords), *X.shape), dtype=float)
+        for k, (dx, dy) in enumerate(depot_coords):
+            distances[k] = np.sqrt((X - dx) ** 2 + (Y - dy) ** 2)
+
+        if len(depot_id_list) == 2:
+            # 2社のときはただの等距離線
+            plt.contour(
+                X, Y, distances[0] - distances[1],
+                levels=[0], colors="gray", linestyles="--", linewidths=1
+            )
+        else:
+            # 3社以上：ボロノイ境界（最近傍デポが変わる場所）を描く
+            region = np.argmin(distances, axis=0)  # shape: (H, W), 値は 0..(m-1)
+
+            # 隣接セルでラベルが変わる場所を境界とみなす
+            boundary = np.zeros_like(region, dtype=bool)
+
+            # 縦方向の変化
+            boundary[:-1, :] |= (region[:-1, :] != region[1:, :])
+            # 横方向の変化
+            boundary[:, :-1] |= (region[:, :-1] != region[:, 1:])
+
+            # contour は数値配列が扱いやすいので 0/1 に変換して描画
+            plt.contour(
+                X, Y, boundary.astype(int),
+                levels=[0.5], colors="gray", linestyles="--", linewidths=1
+            )
+
+
+
+    # ====== 軸ラベル（要件） ======
+    plt.xlabel("x")
+    plt.ylabel("y")
+
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    # ====== フッター（改善率など）は出さない（要件） ======
+    # fig.text(...) やメトリクス計算は削除
 
     # 保存
     save_path = os.path.join(instance_folder, f"routes_iter_{iteration:02d}.png")
