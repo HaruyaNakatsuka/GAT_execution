@@ -1,6 +1,6 @@
 from parser import parse_lilim200
 from flexible_vrp_solver import route_cost
-from gat import initialize_individual_vrps, perform_gat_exchange
+from gat import initialize_individual_vrps, perform_gat_exchange_only_different_company
 from visualizer import plot_routes
 from web_exporter import export_vrp_state, generate_index_json
 from checker import check_solution_feasibility
@@ -126,7 +126,6 @@ def print_testcase_title(
     print(border)
 
 
-
 def compute_company_costs(routes, all_customers, vehicle_num_list):
     """各LSPごとの総コストを計算する"""
     company_costs = []
@@ -145,16 +144,31 @@ def compute_company_costs(routes, all_customers, vehicle_num_list):
 # ==============================
 
 test_cases = [
-    (["data/LC1_2_2.txt", "data/LC1_2_6.txt"], [(0, 0), (42, -42)], sys.maxsize),
-    (["data/LC1_2_2.txt", "data/LC1_2_7.txt"], [(0, 0), (-32, -32)], sys.maxsize),
-    (["data/LC1_2_4.txt", "data/LC1_2_7.txt"], [(0, 0), (-30, 0)], 9),
-    (["data/LC1_2_4.txt", "data/LC1_2_8.txt"], [(0, 0), (-30, 0)], 9),
-    (["data/LC1_2_10.txt", "data/LC1_2_4.txt"], [(0, 0), (30, 0)], 8),
-    (["data/LR1_2_3.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 7),
-    (["data/LR1_2_5.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 7),
-    (["data/LR1_2_8.txt", "data/LR1_2_9.txt"], [(0, 0), (0, -30)], 7),
-    (["data/LR1_2_10.txt", "data/LR1_2_3.txt"], [(0, 0), (0, -30)], 7),
-    (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 5)
+    # --- Cluster type (LC) ---
+    (["data/LC1_2_1.txt", "data/LC1_2_2.txt", "data/LC1_2_3.txt", "data/LC1_2_4.txt"],
+     [(0, 0), (9, 35), (34, 4), (40, 33)], 0),
+
+    (["data/LC1_2_5.txt", "data/LC1_2_6.txt", "data/LC1_2_7.txt", "data/LC1_2_8.txt"],
+     [(0, 0), (2, 46), (45, 10), (48, 41)], 0),
+
+    (["data/LC1_2_1.txt", "data/LC1_2_2.txt", "data/LC1_2_5.txt", "data/LC1_2_6.txt"],
+     [(0, 0), (6, 38), (35, 7), (39, 39)], 0),
+
+    (["data/LC1_2_3.txt", "data/LC1_2_4.txt", "data/LC1_2_7.txt", "data/LC1_2_8.txt"],
+     [(0, 0), (1, 37), (41, 2), (35, 42)], 0),
+     
+    # --- Random type (LR) ---
+    (["data/LR1_2_1.txt", "data/LR1_2_2.txt", "data/LR1_2_3.txt", "data/LR1_2_4.txt"],
+     [(0, 0), (7, 36), (35, 9), (44, 38)], 0),
+
+    (["data/LR1_2_5.txt", "data/LR1_2_6.txt", "data/LR1_2_7.txt", "data/LR1_2_8.txt"],
+     [(0, 0), (3, 49), (48, 0), (45, 44)], 0),
+
+    (["data/LR1_2_1.txt", "data/LR1_2_2.txt", "data/LR1_2_5.txt", "data/LR1_2_6.txt"],
+     [(0, 0), (0, 39), (41, 3), (33, 38)], 0),
+
+    (["data/LR1_2_3.txt", "data/LR1_2_4.txt", "data/LR1_2_7.txt", "data/LR1_2_8.txt"],
+     [(0, 0), (4, 38), (45, 6), (37, 46)], 0),
 ]
 
 """
@@ -185,6 +199,35 @@ test_cases = [
     (["data/LR1_2_10.txt", "data/LR1_2_3.txt"], [(0, 0), (0, -30)], 0),
     (["data/LR1_2_10.txt", "data/LR1_2_8.txt"], [(0, 0), (0, 30)], 0)
 ]
+
+# --- 4社参加のテストケース ---
+test_cases = [
+    # --- Cluster type (LC) ---
+    (["data/LC1_2_1.txt", "data/LC1_2_2.txt", "data/LC1_2_3.txt", "data/LC1_2_4.txt"],
+     [(0, 0), (9, 35), (34, 4), (40, 33)], 0),
+
+    (["data/LC1_2_5.txt", "data/LC1_2_6.txt", "data/LC1_2_7.txt", "data/LC1_2_8.txt"],
+     [(0, 0), (2, 46), (45, 10), (48, 41)], 0),
+
+    (["data/LC1_2_1.txt", "data/LC1_2_2.txt", "data/LC1_2_5.txt", "data/LC1_2_6.txt"],
+     [(0, 0), (6, 38), (35, 7), (39, 39)], 0),
+
+    (["data/LC1_2_3.txt", "data/LC1_2_4.txt", "data/LC1_2_7.txt", "data/LC1_2_8.txt"],
+     [(0, 0), (1, 37), (41, 2), (35, 42)], 0),
+     
+    # --- Random type (LR) ---
+    (["data/LR1_2_1.txt", "data/LR1_2_2.txt", "data/LR1_2_3.txt", "data/LR1_2_4.txt"],
+     [(0, 0), (7, 36), (35, 9), (44, 38)], 0),
+
+    (["data/LR1_2_5.txt", "data/LR1_2_6.txt", "data/LR1_2_7.txt", "data/LR1_2_8.txt"],
+     [(0, 0), (3, 49), (48, 0), (45, 44)], 0),
+
+    (["data/LR1_2_1.txt", "data/LR1_2_2.txt", "data/LR1_2_5.txt", "data/LR1_2_6.txt"],
+     [(0, 0), (0, 39), (41, 3), (33, 38)], 0),
+
+    (["data/LR1_2_3.txt", "data/LR1_2_4.txt", "data/LR1_2_7.txt", "data/LR1_2_8.txt"],
+     [(0, 0), (4, 38), (45, 6), (37, 46)], 0),
+]
 """
 
 
@@ -199,8 +242,11 @@ for case_index, (file_paths, offsets, exact_pd_pair_limit) in enumerate(test_cas
         exact_pd_pair_limit=exact_pd_pair_limit,
     )
 
-    instance_name = f"{os.path.basename(file_paths[0]).split('.')[0]}_{os.path.basename(file_paths[1]).split('.')[0]}"
-    
+    instance_name = "_".join(
+        os.path.basename(p).split(".")[0]
+        for p in file_paths
+    )
+
     start_time = time.time()
 
     num_lsps = len(file_paths)
@@ -266,7 +312,7 @@ for case_index, (file_paths, offsets, exact_pd_pair_limit) in enumerate(test_cas
         prev_total_cost = sum(prev_company_costs)
         
         # === 経路生成 ===
-        routes = perform_gat_exchange(
+        routes = perform_gat_exchange_only_different_company(
             routes, all_customers, all_PD_pairs, vehicle_capacity, vehicle_num_list, exact_pd_pair_limit
         )
         
